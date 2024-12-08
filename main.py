@@ -1,42 +1,47 @@
-import numpy as np
+import random
 
-def equalize_compote(glasses):
-    total_volume = sum(glasses)
+
+def distribute_compote(glasses):
+    total_compote = sum(glasses)
     num_glasses = len(glasses)
-    
-    # Проверка, можно ли равномерно распределить компот
-    if total_volume % num_glasses != 0:
+
+    # Проверяем, можно ли равномерно распределить компот
+    if total_compote % num_glasses != 0:
         print("Невозможно равномерно распределить компот.")
         return None
-    
-    target_volume = total_volume // num_glasses
-    moves = []
-    
+
+    target_amount = total_compote // num_glasses
+    operations = 0
+
+    # Создаем список стаканов с их индексами
+    glasses_with_index = list(enumerate(glasses))
+
     while True:
-        # Находим стаканы, которые нужно поднять
-        overfilled = [i for i in range(num_glasses) if glasses[i] > target_volume]
-        underfilled = [i for i in range(num_glasses) if glasses[i] < target_volume]
-        
-        if not overfilled and not underfilled:
-            break  # Все стаканы равны
-        
+        # Находим стаканы, которые нужно опустошить и наполнить
+        to_empty = [i for i, amount in glasses_with_index if amount > target_amount]
+        to_fill = [i for i, amount in glasses_with_index if amount < target_amount]
+
+        # Если все стаканы равны, выходим из цикла
+        if not to_empty and not to_fill:
+            break
+
         # Переливаем компот
-        for i in overfilled:
-            for j in underfilled:
-                if glasses[i] > target_volume and glasses[j] < target_volume:
-                    transfer_amount = min(glasses[i] - target_volume, target_volume - glasses[j])
-                    glasses[i] -= transfer_amount
-                    glasses[j] += transfer_amount
-                    moves.append((i, j, transfer_amount))
-    
-    return moves, glasses
+        for i in to_empty:
+            for j in to_fill:
+                if glasses_with_index[i][1] > target_amount and glasses_with_index[j][1] < target_amount:
+                    transfer_amount = min(glasses_with_index[i][1] - target_amount,
+                                          target_amount - glasses_with_index[j][1])
+                    glasses_with_index[i] = (glasses_with_index[i][0], glasses_with_index[i][1] - transfer_amount)
+                    glasses_with_index[j] = (glasses_with_index[j][0], glasses_with_index[j][1] + transfer_amount)
+                    operations += 1  # Увеличиваем количество операций
+                    print(
+                        f"Переливаем {transfer_amount} мл из стакана {glasses_with_index[i][0]} в стакан {glasses_with_index[j][0]}")
 
-# Пример использования
-glasses = [100, 200, 300, 400, 500]  # Начальные объемы в мл
-moves, final_state = equalize_compote(glasses)
+    print(f"Все стаканы теперь содержат {target_amount} мл компота.")
+    print(f"Общее количество операций: {operations}")
 
-if moves:
-    print("Переливания компота:")
-    for move in moves:
-        print(f"Перелить {move[2]} мл из стакана {move[0] + 1} в стакан {move[1] + 1}")
-    print("Конечное состояние стаканов:", final_state)
+
+# Генерируем случайные объемы компота в стаканах
+random_glasses = [random.randint(50, 150) for _ in range(5)]
+print(f"Начальные объемы компота в стаканах: {random_glasses}")
+distribute_compote(random_glasses)
